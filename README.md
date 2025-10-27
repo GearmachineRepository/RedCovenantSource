@@ -95,18 +95,44 @@ Developer checklist:
 - Keep server-only logic in `ServerScriptService`.
 - Add folder `.meta.json` files where needed to preserve metadata expected by the toolchain.
 
-## Contributing
+## Git Workflow Guide
 
-Contributions are welcome. Recommended flow:
+This guide outlines the recommended workflow for maintaining a clean and manageable `main` branch.
 
-1. Open an issue to discuss non-trivial changes or bugs.
-2. Create a branch for each feature/bugfix and include focused commits.
-3. Open a pull request with a clear description; include testing steps or small tests where feasible.
+1. Start New Work in a Feature Branch  
+Create a new branch off `main` for each feature, bug fix, or improvement:
 
-Coding guidelines:
-- Keep modules focused and composable.
-- Document exported module functions with short comments.
-- Add or update `.meta.json` files where folder structure or tooling expectations change.
+    git checkout -b feature/your-feature-name
+
+2. Commit and Push Changes  
+Make your changes, then commit with a clear message and push the branch:
+
+    git add .
+	
+    git commit -m "Brief description of your changes"
+	
+    git push -u origin feature/your-feature-name
+
+3. Create a Pull Request (PR)  
+Open a PR to merge your feature branch into `main`.  
+- Review your code carefully.  
+- Squash or tidy commits if necessary.  
+- Merge the PR only when ready and reviewed.
+
+4. Keep `main` Up to Date  
+Before starting new work, update your local `main` branch:
+
+    git checkout main
+    git pull origin main
+
+5. Clean Up Branches  
+After your PR is merged, delete the feature branch locally and remotely:
+
+    git branch -d feature/your-feature-name
+   
+    git push origin --delete feature/your-feature-name
+
+---
 
 ## License & contact
 
