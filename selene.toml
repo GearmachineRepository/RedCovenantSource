@@ -1,1 +1,7 @@
 std = "roblox"
+
+exclude = [
+  "out/**",                           # ignore Rojo build output
+  "Packages/**",                      # ignore vendored packages
+  "src/ReplicatedStorage/IgnoreMe.luau" # ignore a single file
+]

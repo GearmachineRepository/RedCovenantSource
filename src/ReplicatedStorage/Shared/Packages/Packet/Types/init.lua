@@ -1,3 +1,4 @@
+--# selene: allow(undefined_variable, global_usage, shadowing)
 --!strict
 --!optimize 2
 
@@ -139,7 +140,7 @@ local function WriteF24(value: number)
 	local bitOffset = bufferOffset * 8
 	bufferOffset += 3
 	if value == 0 then
-		buffer.writebits(activeBuffer, bitOffset, 24, 0b0_000000_00000000000000000) 
+		buffer.writebits(activeBuffer, bitOffset, 24, 0b0_000000_00000000000000000)
 	elseif value >= 4294959104 then
 		buffer.writebits(activeBuffer, bitOffset, 24, 0b0_111111_00000000000000000)
 	elseif value <= -4294959104 then
@@ -171,15 +172,15 @@ reads.NumberS8 = function() return ReadS8() end
 writes.NumberS8 = function(value: number) Allocate(1) WriteS8(value) end
 
 types.NumberS16 = ("NumberS16" :: any) :: number
-reads.NumberS16 = function() return ReadS16() end 
+reads.NumberS16 = function() return ReadS16() end
 writes.NumberS16 = function(value: number) Allocate(2) WriteS16(value) end
 
 types.NumberS24 = ("NumberS24" :: any) :: number
-reads.NumberS24 = function() return ReadS24() end 
+reads.NumberS24 = function() return ReadS24() end
 writes.NumberS24 = function(value: number) Allocate(3) WriteS24(value) end
 
 types.NumberS32 = ("NumberS32" :: any) :: number
-reads.NumberS32 = function() return ReadS32() end 
+reads.NumberS32 = function() return ReadS32() end
 writes.NumberS32 = function(value: number) Allocate(4) WriteS32(value) end
 
 types.NumberU8 = ("NumberU8" :: any) :: number
@@ -191,11 +192,11 @@ reads.NumberU16 = function() return ReadU16() end
 writes.NumberU16 = function(value: number) Allocate(2) WriteU16(value) end
 
 types.NumberU24 = ("NumberU24" :: any) :: number
-reads.NumberU24 = function() return ReadU24() end 
+reads.NumberU24 = function() return ReadU24() end
 writes.NumberU24 = function(value: number) Allocate(3) WriteU24(value) end
 
 types.NumberU32 = ("NumberU32" :: any) :: number
-reads.NumberU32 = function() return ReadU32() end 
+reads.NumberU32 = function() return ReadU32() end
 writes.NumberU32 = function(value: number) Allocate(4) WriteU32(value) end
 
 types.NumberF16 = ("NumberF16" :: any) :: number
@@ -357,8 +358,12 @@ end
 writes.CFrameF24U8 = function(value: CFrame)
 	local rx, ry, rz = value:ToEulerAnglesXYZ()
 	Allocate(12)
-	WriteU8(rx * 40.58451048843331 + 0.5) WriteU8(ry * 40.58451048843331 + 0.5) WriteU8(rz * 40.58451048843331 + 0.5)
-	WriteF24(value.X) WriteF24(value.Y) WriteF24(value.Z)
+	WriteU8(rx * 40.58451048843331 + 0.5)
+	WriteU8(ry * 40.58451048843331 + 0.5)
+	WriteU8(rz * 40.58451048843331 + 0.5)
+	WriteF24(value.X)
+	WriteF24(value.Y)
+	WriteF24(value.Z)
 end
 
 types.CFrameF32U8 = ("CFrameF32U8" :: any) :: CFrame
@@ -369,8 +374,12 @@ end
 writes.CFrameF32U8 = function(value: CFrame)
 	local rx, ry, rz = value:ToEulerAnglesXYZ()
 	Allocate(15)
-	WriteU8(rx * 40.58451048843331 + 0.5) WriteU8(ry * 40.58451048843331 + 0.5) WriteU8(rz * 40.58451048843331 + 0.5)
-	WriteF32(value.X) WriteF32(value.Y) WriteF32(value.Z)
+	WriteU8(rx * 40.58451048843331 + 0.5)
+	WriteU8(ry * 40.58451048843331 + 0.5)
+	WriteU8(rz * 40.58451048843331 + 0.5)
+	WriteF32(value.X)
+	WriteF32(value.Y)
+	WriteF32(value.Z)
 end
 
 types.CFrameF32U16 = ("CFrameF32U16" :: any) :: CFrame
@@ -381,8 +390,12 @@ end
 writes.CFrameF32U16 = function(value: CFrame)
 	local rx, ry, rz = value:ToEulerAnglesXYZ()
 	Allocate(18)
-	WriteU16(rx * 10430.219195527361 + 0.5) WriteU16(ry * 10430.219195527361 + 0.5) WriteU16(rz * 10430.219195527361 + 0.5)
-	WriteF32(value.X) WriteF32(value.Y) WriteF32(value.Z)
+	WriteU16(rx * 10430.219195527361 + 0.5)
+	WriteU16(ry * 10430.219195527361 + 0.5)
+	WriteU16(rz * 10430.219195527361 + 0.5)
+	WriteF32(value.X)
+	WriteF32(value.Y)
+	WriteF32(value.Z)
 end
 
 types.Region3 = ("Region3" :: any) :: Region3
@@ -397,8 +410,12 @@ writes.Region3 = function(value: Region3)
 	local minimum = value.CFrame.Position - halfSize
 	local maximum = value.CFrame.Position + halfSize
 	Allocate(24)
-	WriteF32(minimum.X) WriteF32(minimum.Y) WriteF32(minimum.Z)
-	WriteF32(maximum.X) WriteF32(maximum.Y) WriteF32(maximum.Z)
+	WriteF32(minimum.X)
+	WriteF32(minimum.Y)
+	WriteF32(minimum.Z)
+	WriteF32(maximum.X)
+	WriteF32(maximum.Y)
+	WriteF32(maximum.Z)
 end
 
 types.NumberSequence = ("NumberSequence" :: any) :: NumberSequence
@@ -415,7 +432,9 @@ writes.NumberSequence = function(value: NumberSequence)
 	Allocate(1 + length * 3)
 	WriteU8(length)
 	for index, keypoint in value.Keypoints do
-		WriteU8(keypoint.Time * 255 + 0.5) WriteU8(keypoint.Value * 255 + 0.5) WriteU8(keypoint.Envelope * 255 + 0.5)
+		WriteU8(keypoint.Time * 255 + 0.5)
+		WriteU8(keypoint.Value * 255 + 0.5)
+		WriteU8(keypoint.Envelope * 255 + 0.5)
 	end
 end
 
@@ -423,7 +442,7 @@ types.ColorSequence = ("ColorSequence" :: any) :: ColorSequence
 reads.ColorSequence = function()
 	local length = ReadU8()
 	local keypoints = table.create(length)
-	for index = 1, length do
+	for _ = 1, length do
 		table.insert(keypoints, ColorSequenceKeypoint.new(ReadU8() / 255, Color3.fromRGB(ReadU8(), ReadU8(), ReadU8())))
 	end
 	return ColorSequence.new(keypoints)
@@ -432,9 +451,11 @@ writes.ColorSequence = function(value: ColorSequence)
 	local length = #value.Keypoints
 	Allocate(1 + length * 4)
 	WriteU8(length)
-	for index, keypoint in value.Keypoints do
+	for _, keypoint in value.Keypoints do
 		WriteU8(keypoint.Time * 255 + 0.5)
-		WriteU8(keypoint.Value.R * 255 + 0.5) WriteU8(keypoint.Value.G * 255 + 0.5) WriteU8(keypoint.Value.B * 255 + 0.5)
+		WriteU8(keypoint.Value.R * 255 + 0.5)
+		WriteU8(keypoint.Value.G * 255 + 0.5)
+		WriteU8(keypoint.Value.B * 255 + 0.5)
 	end
 end
 
@@ -681,24 +702,24 @@ return {
 		instances = cursor.Instances
 		instancesOffset = cursor.InstancesOffset
 	end,
-	
+
 	Export = function()
 		activeCursor.BufferLength = bufferLength
 		activeCursor.BufferOffset = bufferOffset
 		activeCursor.InstancesOffset = instancesOffset
 		return activeCursor
 	end,
-	
+
 	Truncate = function()
 		local truncatedBuffer = buffer.create(bufferOffset)
 		buffer.copy(truncatedBuffer, 0, activeBuffer, 0, bufferOffset)
 		if instancesOffset == 0 then return truncatedBuffer else return truncatedBuffer, instances end
 	end,
-	
+
 	Ended = function()
 		return bufferOffset >= bufferLength
 	end,
-	
+
 	Types = types,
 	Reads = reads,
 	Writes = writes,

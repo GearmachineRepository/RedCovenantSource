@@ -5,8 +5,10 @@ local Packet = require(script.Parent.Parent
 
 return {
 	-- Combat
-	RequestAttack = Packet("RequestAttack", Packet.Instance, Packet.String),
-	DamageDealt = Packet("DamageDealt", Packet.Instance, Packet.NumberU8, Packet.Boolean8),
+	RequestAttack = Packet("RequestAttack"),
+	CancelAttack = Packet("CancelAttack"),
+	CombatHit = Packet("CombatHit", Packet.Instance, Packet.String, Packet.Vector3, Packet.NumberF64),
+	CombatHitConfirmed = Packet("CombatHitConfirmed", Packet.Instance, Packet.NumberF32, Packet.Boolean8, Packet.String),
 
 	-- Equipment
 	EquipItem = Packet("EquipItem", Packet.NumberU16, Packet.String),
