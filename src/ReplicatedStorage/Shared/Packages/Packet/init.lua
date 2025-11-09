@@ -181,7 +181,7 @@ function TableToFunctions(parameters: {any})
 		local readFunctions, writeFunctions = table.create(#keys), table.create(#keys)
 		for index, key in keys do
 			local parameter = parameters[key]
-			if type(parameter) == "table" then 
+			if type(parameter) == "table" then
 				readFunctions[index], writeFunctions[index] = TableToFunctions(parameter)
 			else
 				readFunctions[index], writeFunctions[index] = reads[parameter], writes[parameter]
@@ -264,7 +264,7 @@ if RunService:IsServer() then
 		WriteParameters(packet.ResponseWrites, values)
 		playerCursors[player] = Export()
 	end
-	
+
 	local onServerEvent = function(player: Player, receivedBuffer: buffer, instances: {Instance}?)
 		local bytes = (playerBytes[player] or 0) + math.max(buffer.len(receivedBuffer), 800)
 		if bytes > 8_000 then if RunService:IsStudio() then warn(player.Name, "is exceeding the data/rate limit; some events may be dropped") end return end
@@ -309,7 +309,7 @@ if RunService:IsServer() then
 	RunService.Heartbeat:Connect(function(deltaTime) task.defer(thread) end)
 else
 	threads = {Index = 0}
-	remoteEvent = script:WaitForChild("RemoteEvent")
+	remoteEvent = game:GetService("ReplicatedStorage"):WaitForChild("PacketEvent") :: RemoteEvent
 	local totalTime = 0
 
 	local thread = task.spawn(function()

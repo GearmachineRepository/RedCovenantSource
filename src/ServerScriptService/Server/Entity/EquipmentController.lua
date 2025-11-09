@@ -2,7 +2,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ItemDatabase = require(Shared.Data.ItemDatabase)
-local StatsModule = require(Shared.Stats)
+local StatsModule = require(Shared.Configurations.Stats)
+local ArmorSetConfig = require(Shared.Configurations.ArmorSetConfig)
+
 local Stats = StatsModule.Stats
 
 export type EquipmentController = {
@@ -33,7 +35,6 @@ function EquipmentController.new(CharacterController: any): EquipmentController
 end
 
 function EquipmentController:EquipArmor(ItemInstance: ItemDatabase.ItemInstance, Slot: string)
-	-- Unequip current armor in slot if exists
 	if self.EquippedArmor[Slot] then
 		self:UnequipArmor(Slot)
 	end
@@ -44,43 +45,22 @@ function EquipmentController:EquipArmor(ItemInstance: ItemDatabase.ItemInstance,
 		return
 	end
 
-	-- Apply armor value
-	if ItemInstance.Metadata.Armor then
-		self.Controller.StateManager:ModifyStat(Stats.ARMOR, ItemInstance.Metadata.Armor)
+	for StatName, Value in ItemInstance.Metadata do
+		if typeof(Value) == "number" then
+			local StatConstant = Stats[StatName:upper()]
+			if StatConstant then
+				self.Controller.StateManager:ModifyStat(StatConstant, Value)
+
+				if StatName == "Health" then
+					local Humanoid = self.Controller.Humanoid :: Humanoid
+					Humanoid.MaxHealth += Value
+					Humanoid.Health += Value
+				end
+			end
+		end
 	end
 
-	-- Apply stat bonuses from metadata
-	if ItemInstance.Metadata.Health then
-		self.Controller.StateManager:ModifyStat(Stats.MAX_HEALTH, ItemInstance.Metadata.Health)
-		local Humanoid = self.Controller.Humanoid :: Humanoid
-		Humanoid.MaxHealth += ItemInstance.Metadata.Health
-		Humanoid.Health += ItemInstance.Metadata.Health
-	end
-
-	if ItemInstance.Metadata.Posture then
-		self.Controller.StateManager:ModifyStat(Stats.MAX_POSTURE, ItemInstance.Metadata.Posture)
-	end
-
-	if ItemInstance.Metadata.PhysicalResistance then
-		self.Controller.StateManager:ModifyStat(Stats.PHYSICAL_RESISTANCE, ItemInstance.Metadata.PhysicalResistance)
-	end
-
-	if ItemInstance.Metadata.Strength then
-		self.Controller.StateManager:ModifyStat(Stats.STRENGTH, ItemInstance.Metadata.Strength)
-	end
-
-	if ItemInstance.Metadata.Agility then
-		self.Controller.StateManager:ModifyStat(Stats.AGILITY, ItemInstance.Metadata.Agility)
-	end
-
-	if ItemInstance.Metadata.Vitality then
-		self.Controller.StateManager:ModifyStat(Stats.VITALITY, ItemInstance.Metadata.Vitality)
-	end
-
-	-- Store equipped armor
 	self.EquippedArmor[Slot] = ItemInstance
-
-	-- Check set bonuses
 	self:CheckSetBonuses()
 
 	print("Equipped armor:", Template.Name, "in slot", Slot)
@@ -92,43 +72,22 @@ function EquipmentController:UnequipArmor(Slot: string): ItemDatabase.ItemInstan
 		return nil
 	end
 
-	-- Remove armor value
-	if ItemInstance.Metadata.Armor then
-		self.Controller.StateManager:ModifyStat(Stats.ARMOR, -ItemInstance.Metadata.Armor)
+	for StatName, Value in ItemInstance.Metadata do
+		if typeof(Value) == "number" then
+			local StatConstant = Stats[StatName:upper()]
+			if StatConstant then
+				self.Controller.StateManager:ModifyStat(StatConstant, -Value)
+
+				if StatName == "Health" then
+					local Humanoid = self.Controller.Humanoid :: Humanoid
+					Humanoid.MaxHealth -= Value
+					Humanoid.Health = math.min(Humanoid.Health, Humanoid.MaxHealth)
+				end
+			end
+		end
 	end
 
-	-- Remove stat bonuses
-	if ItemInstance.Metadata.Health then
-		self.Controller.StateManager:ModifyStat(Stats.MAX_HEALTH, -ItemInstance.Metadata.Health)
-		local Humanoid = self.Controller.Humanoid :: Humanoid
-		Humanoid.MaxHealth -= ItemInstance.Metadata.Health
-		Humanoid.Health = math.min(Humanoid.Health, Humanoid.MaxHealth)
-	end
-
-	if ItemInstance.Metadata.Posture then
-		self.Controller.StateManager:ModifyStat(Stats.MAX_POSTURE, -ItemInstance.Metadata.Posture)
-	end
-
-	if ItemInstance.Metadata.PhysicalResistance then
-		self.Controller.StateManager:ModifyStat(Stats.PHYSICAL_RESISTANCE, -ItemInstance.Metadata.PhysicalResistance)
-	end
-
-	if ItemInstance.Metadata.Strength then
-		self.Controller.StateManager:ModifyStat(Stats.STRENGTH, -ItemInstance.Metadata.Strength)
-	end
-
-	if ItemInstance.Metadata.Agility then
-		self.Controller.StateManager:ModifyStat(Stats.AGILITY, -ItemInstance.Metadata.Agility)
-	end
-
-	if ItemInstance.Metadata.Vitality then
-		self.Controller.StateManager:ModifyStat(Stats.VITALITY, -ItemInstance.Metadata.Vitality)
-	end
-
-	-- Remove from equipped
 	self.EquippedArmor[Slot] = nil
-
-	-- Recheck set bonuses
 	self:CheckSetBonuses()
 
 	print("Unequipped armor from slot", Slot)
@@ -137,15 +96,29 @@ function EquipmentController:UnequipArmor(Slot: string): ItemDatabase.ItemInstan
 end
 
 function EquipmentController:EquipWeapon(ItemInstance: ItemDatabase.ItemInstance)
-	local Template = ItemDatabase.Get(ItemInstance.ItemId)
-	if not Template or (Template.Type ~= "Sword" and Template.Type ~= "Axe" and Template.Type ~= "Spear" and Template.Type ~= "Mace") then
-		warn("Cannot equip non-weapon item as weapon")
-		return
-	end
+    local Template = ItemDatabase.Get(ItemInstance.ItemId)
+    if not Template or (Template.Type ~= "Sword" and Template.Type ~= "Axe" and Template.Type ~= "Spear" and Template.Type ~= "Mace") then
+        warn("Cannot equip non-weapon item as weapon")
+        return
+    end
 
-	self.EquippedWeapon = ItemInstance
+    if self.EquippedWeapon and self.EquippedWeapon.ItemId == ItemInstance.ItemId then
+        print("Weapon already equipped, skipping:", Template.Name)
+        return
+    end
 
-	print("Equipped weapon:", Template.Name)
+    -- Only unequip if there's actually a different weapon equipped
+    if self.EquippedWeapon and self.EquippedWeapon.ItemId ~= ItemInstance.ItemId then
+        self:UnequipWeapon()
+    end
+
+    self.EquippedWeapon = ItemInstance
+
+    if self.Controller.CombatController then
+        self.Controller.CombatController:EquipWeapon(Template.Type)
+    end
+
+    --print("Equipped weapon:", Template.Name, ItemInstance.ItemId)
 end
 
 function EquipmentController:UnequipWeapon(): ItemDatabase.ItemInstance?
@@ -153,7 +126,11 @@ function EquipmentController:UnequipWeapon(): ItemDatabase.ItemInstance?
 	self.EquippedWeapon = nil
 
 	if Weapon then
-		print("Unequipped weapon")
+		if self.Controller.CombatController then
+			self.Controller.CombatController:UnequipWeapon()
+		end
+
+		--print("Unequipped weapon", Weapon.ItemId)
 	end
 
 	return Weapon
@@ -162,25 +139,30 @@ end
 function EquipmentController:CheckSetBonuses()
 	local SetCounts: {[string]: number} = {}
 
-	-- Count equipped items per set
-	for _, ItemInstance in self.EquippedArmor do -- Slot, ItemInstance
+	for _, ItemInstance in self.EquippedArmor do
 		if ItemInstance.Metadata.SetName then
 			SetCounts[ItemInstance.Metadata.SetName] = (SetCounts[ItemInstance.Metadata.SetName] or 0) + 1
 		end
 	end
 
-	-- Apply set bonuses (example implementation)
 	for SetName, Count in SetCounts do
-		if SetName == "ItalianPlate" then
-			if Count >= 2 then
-				print("Italian Plate 2pc Bonus: +10 Agility (TODO: Implement)")
-			end
-			if Count >= 3 then
-				print("Italian Plate 3pc Bonus: +15% Movement Speed (TODO: Implement)")
-			end
-		elseif SetName == "GermanGothic" then
-			if Count >= 2 then
-				print("German Gothic 2pc Bonus: +20 Health (TODO: Implement)")
+		local SetData = ArmorSetConfig.GetSet(SetName)
+		if not SetData then
+			warn("Unknown armor set:", SetName)
+			continue
+		end
+
+		for _, Bonus in SetData.Bonuses do
+			if Count >= Bonus.PiecesRequired then
+				print(string.format("%s (%dpc): %s", SetData.Name, Bonus.PiecesRequired, Bonus.Description))
+				if Bonus.StatBonuses then
+					for StatName, Value in Bonus.StatBonuses do
+
+						if Stats[StatName:upper()] then
+							self.Controller.StateManager:ModifyStat(Stats[StatName:upper()], Value)
+						end
+					end
+				end
 			end
 		end
 	end

@@ -2,8 +2,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local StatsModule = require(Shared.Stats)
-local States = StatsModule.States
+local StatesModule = require(Shared.Configurations.States)
+local States = StatesModule.States
 
 local StateHandlers = {}
 
@@ -33,7 +33,7 @@ function StateHandlers.Setup(Controller: any)
 
 	-- Attacking handler
 	StateManager:OnStateChanged(States.ATTACKING, function(IsAttacking)
-		
+
 		if IsAttacking then
 			print(Character.Name .. " started attacking")
 			-- TODO: Play attack animation
@@ -55,8 +55,8 @@ function StateHandlers.Setup(Controller: any)
 			end
 		end
 	end)
-	
-	
+
+
 end
 
 return StateHandlers

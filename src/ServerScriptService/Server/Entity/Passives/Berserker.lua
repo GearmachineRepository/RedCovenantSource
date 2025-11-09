@@ -10,13 +10,13 @@ function Berserker.Register(Controller)
 	local function CreateAura()
 		if BerserkerAura then return end
 
-		local Attachment = Controller.Character:FindFirstChild("WaistCenterAttachment", true) or Controller.Character.PrimaryPart
+		-- local Attachment = Controller.Character:FindFirstChild("WaistCenterAttachment", true) or Controller.Character.PrimaryPart
 
-		BerserkerAura = script.Emitter:Clone()
-		BerserkerAura.Parent = Attachment
-		BerserkerAura.Enabled = true
+		-- BerserkerAura = script.Emitter:Clone()
+		-- BerserkerAura.Parent = Attachment
+		-- BerserkerAura.Enabled = true
 
-		BerserkerAura.Parent = Controller.Character.PrimaryPart
+		-- BerserkerAura.Parent = Controller.Character.PrimaryPart
 	end
 
 	local function RemoveAura()

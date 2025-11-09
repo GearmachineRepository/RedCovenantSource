@@ -7,11 +7,12 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local CharacterController = require(Server.Entity.CharacterController)
 local PassiveRegistry = require(Server.Entity.PassiveRegistry)
-local StatsModule = require(Shared.Stats)
+local StatsModule = require(Shared.Configurations.Stats)
+local StatesModule = require(Shared.Configurations.States)
 
 local CommandUtil = {}
 
-CommandUtil.States = StatsModule.States
+CommandUtil.States = StatesModule.States
 CommandUtil.Stats = StatsModule.Stats
 
 function CommandUtil.GetController(Player: Player)

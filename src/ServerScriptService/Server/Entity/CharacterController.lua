@@ -8,8 +8,12 @@ local Server = ServerScriptService:WaitForChild("Server")
 
 local StateManager = require(Server.Entity.StateManager)
 local PassiveController = require(Server.Entity.PassiveController)
-local StatsModule = require(Shared.Stats)
-local States = StatsModule.States
+local EquipmentController = require(Server.Entity.EquipmentController)
+local CombatController = require(Server.Combat.CombatController)
+local PostureController = require(Server.Combat.PostureController)
+local StatsModule = require(Shared.Configurations.Stats)
+local StatesModule = require(Shared.Configurations.States)
+local States = StatesModule.States
 local Defaults = StatsModule.Defaults
 local StateHandlers = require(Server.Entity.StateHandlers)
 local Maid = require(Shared.General.Maid)
@@ -29,6 +33,9 @@ export type ControllerType = typeof(setmetatable({} :: {
 	Maid: Maid.MaidSelf,
 	StateManager: StateManager.StateManager,
 	PassiveController: PassiveController.PassiveController,
+	EquipmentController: EquipmentController.EquipmentController,
+	CombatController: any,
+	PostureController: PostureController.PostureController?,
 	StateMachine: any,
 	DamageModifiers: {{Priority: number, Modifier: DamageModifier}},
 	AttackModifiers: {{Priority: number, Modifier: DamageModifier}},
@@ -47,6 +54,9 @@ function CharacterController.new(Character: Model, IsPlayer: boolean): Controlle
 		Maid = Maid.new(),
 		StateManager = nil :: StateManager.StateManager?,
 		PassiveController = nil :: PassiveController.PassiveController?,
+		EquipmentController = nil :: EquipmentController.EquipmentController?,
+		CombatController = nil :: any,
+		PostureController = nil :: PostureController.PostureController?,
 		StateMachine = nil :: any,
 		DamageModifiers = {},
 		AttackModifiers = {},
@@ -57,6 +67,9 @@ function CharacterController.new(Character: Model, IsPlayer: boolean): Controlle
 
 	self.StateManager = StateManager.new(Character)
 	self.PassiveController = PassiveController.new(self)
+	self.EquipmentController = EquipmentController.new(self)
+	self.CombatController = CombatController.new(self)
+	self.PostureController = PostureController.new(self)
 
 	Character:SetAttribute("HasController", true)
 	Controllers[Character] = self
@@ -87,7 +100,15 @@ end
 function CharacterController:SetupHumanoidStateTracking()
 	local Humanoid = self.Humanoid
 
-	self.Maid:GiveTask(RunService.Heartbeat:Connect(function()
+	self.Maid:GiveTask(RunService.Heartbeat:Connect(function(DeltaTime)
+		if self.CombatController then
+			self.CombatController:Update(DeltaTime)
+		end
+
+		if self.PostureController then
+			self.PostureController:Update(DeltaTime)
+		end
+
 		local IsMoving = self.Character.PrimaryPart.Velocity.Magnitude > 1
 		local IsOnGround = Humanoid:GetState() ~= Enum.HumanoidStateType.Freefall
 		local IsSprinting = IsMoving and IsOnGround and Humanoid.WalkSpeed > 16
@@ -97,7 +118,7 @@ function CharacterController:SetupHumanoidStateTracking()
 
 	local IsInAir = false
 
-	self.Maid:GiveTask(Humanoid.StateChanged:Connect(function(_, NewState) -- OldState not used, NewState is
+	self.Maid:GiveTask(Humanoid.StateChanged:Connect(function(_, NewState)
 		if NewState == Enum.HumanoidStateType.Jumping or NewState == Enum.HumanoidStateType.Freefall then
 			if not IsInAir then
 				IsInAir = true
@@ -319,6 +340,11 @@ end
 function CharacterController:Destroy()
 	self.StateManager:Destroy()
 	self.PassiveController:Destroy()
+
+	if self.CombatController then
+		self.CombatController:Destroy()
+	end
+
 	self.Maid:DoCleaning()
 	Controllers[self.Character] = nil
 end
